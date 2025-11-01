@@ -1,129 +1,225 @@
-.login-container {
+/* General page layout */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  background-size: 400% 400%;
+  animation: gradientShift 10s ease infinite;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: linear-gradient(135deg, #1f4037, #99f2c8);
-  position: relative;
-  font-family: "Poppins", sans-serif;
 }
 
+/* Animated gradient background */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Main container */
+.login-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Frosted glass login box */
 .login-box {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
-  width: 320px;
+  width: 350px;
+  padding: 40px 30px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
   text-align: center;
+  color: #fff;
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-box h2 {
-  color: #1f4037;
-  margin-bottom: 20px;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+  letter-spacing: 1px;
 }
 
+/* Inputs */
 .login-box input {
-  display: block;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin: 10px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1rem;
   outline: none;
+  transition: all 0.3s ease;
 }
 
+.login-box input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.login-box input:focus {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+/* Buttons */
 .login-box button {
   width: 100%;
-  padding: 10px;
-  background-color: #1f4037;
-  color: white;
+  padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: 0.3s;
+  margin-top: 10px;
+  transition: all 0.3s ease;
 }
 
 .login-box button:hover {
-  background-color: #2c6e49;
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #33ccff, #0066ff);
+}
+
+/* Signup link */
+.login-box p {
+  margin-top: 15px;
+  font-size: 0.95rem;
+  color: #eee;
 }
 
 .login-box span {
-  color: #1f4037;
+  color: #00e6ff;
   cursor: pointer;
   font-weight: 600;
 }
 
+.login-box span:hover {
+  text-decoration: underline;
+}
+
+/* Floating admin side button */
 .admin-side-btn {
-  position: absolute;
-  top: 20px;
+  position: fixed;
   right: 20px;
-  background: #222;
-  color: white;
-  padding: 10px 15px;
+  top: 20px;
+  padding: 10px 18px;
   border: none;
-  border-radius: 8px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #ff416c, #ff4b2b);
+  color: white;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
 .admin-side-btn:hover {
-  background: #444;
+  transform: scale(1.1);
+  background: linear-gradient(90deg, #ff6a88, #ff4b2b);
 }
 
-/* Admin Popup */
+/* Admin popup overlay */
 .admin-popup {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
+  animation: fadeInPopup 0.3s ease;
 }
 
+@keyframes fadeInPopup {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Admin popup content box */
 .admin-popup-content {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  width: 300px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  border-radius: 15px;
+  padding: 30px 25px;
+  width: 320px;
   text-align: center;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .admin-popup-content h3 {
+  font-size: 1.5rem;
   margin-bottom: 20px;
-  color: #1f4037;
 }
 
 .admin-popup-content input {
   width: 100%;
-  margin: 10px 0;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  margin: 8px 0;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  outline: none;
+  font-size: 0.95rem;
 }
 
+.admin-popup-content input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Admin buttons */
 .admin-btns {
   display: flex;
   justify-content: space-between;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 .admin-btns button {
-  padding: 8px 12px;
+  flex: 1;
+  margin: 0 5px;
+  padding: 10px;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 10px;
+  color: white;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .admin-btns button:first-child {
-  background: #1f4037;
-  color: white;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+}
+
+.admin-btns button:first-child:hover {
+  background: linear-gradient(90deg, #33ccff, #0066ff);
 }
 
 .admin-btns button:last-child {
-  background: #ccc;
+  background: linear-gradient(90deg, #ff416c, #ff4b2b);
+}
+
+.admin-btns button:last-child:hover {
+  background: linear-gradient(90deg, #ff6a88, #ff4b2b);
 }
