@@ -1,0 +1,129 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #1f4037, #99f2c8);
+  position: relative;
+  font-family: "Poppins", sans-serif;
+}
+
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+  width: 320px;
+  text-align: center;
+}
+
+.login-box h2 {
+  color: #1f4037;
+  margin-bottom: 20px;
+}
+
+.login-box input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 10px;
+  background-color: #1f4037;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-box button:hover {
+  background-color: #2c6e49;
+}
+
+.login-box span {
+  color: #1f4037;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.admin-side-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #222;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.admin-side-btn:hover {
+  background: #444;
+}
+
+/* Admin Popup */
+.admin-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.admin-popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+}
+
+.admin-popup-content h3 {
+  margin-bottom: 20px;
+  color: #1f4037;
+}
+
+.admin-popup-content input {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.admin-btns {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.admin-btns button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.admin-btns button:first-child {
+  background: #1f4037;
+  color: white;
+}
+
+.admin-btns button:last-child {
+  background: #ccc;
+}

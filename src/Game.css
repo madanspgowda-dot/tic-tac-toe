@@ -1,0 +1,164 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+.game-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #5a00ff, #0078ff);
+}
+
+.game-box {
+  background: #ffffffee;
+  border-radius: 16px;
+  padding: 30px 50px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.game-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #2b2b2b;
+}
+
+.status {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  grid-gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.cell {
+  width: 80px;
+  height: 80px;
+  font-size: 2rem;
+  font-weight: bold;
+  border: 2px solid #333;
+  border-radius: 10px;
+  background: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cell:hover {
+  background: #e3f2fd;
+  transform: scale(1.05);
+}
+
+.cell.X {
+  color: #0078ff;
+}
+
+.cell.O {
+  color: #ff3b3b;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.restart, .feedback {
+  border: none;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.restart {
+  background: #4caf50;
+  color: white;
+}
+
+.restart:hover {
+  background: #43a047;
+}
+
+.feedback {
+  background: #1e88e5;
+  color: white;
+}
+
+.feedback:hover {
+  background: #1976d2;
+}
+
+.winner-text {
+  color: #43a047;
+  animation: pop 1s ease-in-out infinite alternate;
+}
+
+@keyframes pop {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); color: #ff5722; }
+}
+
+/* Feedback Form */
+.feedback-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.feedback-form {
+  background: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+
+.feedback-form h2 {
+  margin-bottom: 15px;
+}
+
+.feedback-form input,
+.feedback-form textarea {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.form-btns {
+  display: flex;
+  justify-content: space-between;
+}
+
+.submit-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+}
+
+.cancel-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+}
