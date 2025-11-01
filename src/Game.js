@@ -23,8 +23,17 @@ const Game = () => {
   const clickSound = useRef(new Audio(process.env.PUBLIC_URL + "/sounds/click.mp3"));
   const drawSound = useRef(new Audio(process.env.PUBLIC_URL + "/sounds/draw.mp3"));
 
+  // 🕒 Ref to store countdown interval
+  const countdownRef = useRef(null);
+
   // 🎯 Reset the board
   const restartGame = useCallback(() => {
+    // Clear any ongoing countdown timer
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+
     setBoard(Array(9).fill(null));
     setXIsNext(true);
     setWinner(null);
@@ -37,11 +46,18 @@ const Game = () => {
   const startAutoReset = useCallback(() => {
     let counter = 5;
     setCountdown(counter);
-    const interval = setInterval(() => {
+
+    // Clear any existing countdown interval
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
+
+    countdownRef.current = setInterval(() => {
       counter -= 1;
       setCountdown(counter);
       if (counter <= 0) {
-        clearInterval(interval);
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
         restartGame();
       }
     }, 1000);
@@ -58,21 +74,24 @@ const Game = () => {
     clickSound.current.currentTime = 0;
     clickSound.current.play();
 
-    if (mode.includes("computer") && !xIsNext) {
+    // If computer mode and it's computer's turn next
+    if (mode.includes("computer") && xIsNext) {
       setTimeout(() => computerMove(newBoard), 600);
     }
   };
 
-  // 🎯 AI Move (Easy + Hard)
+  // 🎯 Computer Move (Easy + Hard)
   const computerMove = (newBoard) => {
     if (winner || isDraw) return;
 
     let move;
     if (mode === "computer-easy") {
-      const empty = newBoard.map((val, idx) => (val ? null : idx)).filter((v) => v !== null);
+      // 🟢 Easy mode: random
+      const empty = newBoard.map((v, i) => (v ? null : i)).filter((v) => v !== null);
       move = empty[Math.floor(Math.random() * empty.length)];
     } else {
-      move = findBestMove(newBoard, "O"); // Hard mode using minimax
+      // 🔴 Hard mode: Minimax AI
+      move = getBestMove(newBoard);
     }
 
     if (move != null) {
@@ -82,32 +101,55 @@ const Game = () => {
     }
   };
 
-  // 🎯 Minimax for Hard mode
-  const findBestMove = (board, player) => {
-    const opponent = player === "X" ? "O" : "X";
-    const winnerNow = calculateWinner(board);
-    if (winnerNow === player) return 10;
-    if (winnerNow === opponent) return -10;
+  // 🧠 Best move finder (Hard mode)
+  function getBestMove(board) {
+    let bestScore = -Infinity;
+    let move;
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === null) {
+        board[i] = "O";
+        const score = minimax(board, 0, false);
+        board[i] = null;
+        if (score > bestScore) {
+          bestScore = score;
+          move = i;
+        }
+      }
+    }
+    return move;
+  }
+
+  // 🎯 Minimax algorithm
+  function minimax(board, depth, isMaximizing) {
+    const result = calculateWinner(board);
+    if (result === "O") return 10 - depth;
+    if (result === "X") return depth - 10;
     if (!board.includes(null)) return 0;
 
-    const moves = [];
-    board.forEach((cell, idx) => {
-      if (!cell) {
-        const newBoard = [...board];
-        newBoard[idx] = player;
-        moves.push({
-          index: idx,
-          score: -findBestMove(newBoard, opponent),
-        });
+    if (isMaximizing) {
+      let bestScore = -Infinity;
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === null) {
+          board[i] = "O";
+          const score = minimax(board, depth + 1, false);
+          board[i] = null;
+          bestScore = Math.max(score, bestScore);
+        }
       }
-    });
-
-    if (player === "O") {
-      const best = moves.reduce((a, b) => (a.score > b.score ? a : b));
-      return best.index;
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === null) {
+          board[i] = "X";
+          const score = minimax(board, depth + 1, true);
+          board[i] = null;
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+      return bestScore;
     }
-    return moves.reduce((a, b) => (a.score > b.score ? a : b)).score;
-  };
+  }
 
   // 🎯 Check winner or draw
   useEffect(() => {
@@ -139,7 +181,7 @@ const Game = () => {
       .catch((error) => alert("Error: " + error.message));
   };
 
-  // 🎯 UI
+  // 🎯 UI Status
   const status = winner
     ? `🎉 Winner: ${winner}! 🎉`
     : isDraw
@@ -163,7 +205,13 @@ const Game = () => {
         </div>
       ) : (
         <div className="game-box">
-          <button className="back-btn" onClick={() => { restartGame(); setMode(null); }}>
+          <button
+            className="back-btn"
+            onClick={() => {
+              restartGame();
+              setMode(null);
+            }}
+          >
             ⬅ Back
           </button>
 
@@ -183,8 +231,12 @@ const Game = () => {
           )}
 
           <div className="buttons">
-            <button className="restart" onClick={restartGame}>🔄 Restart Game</button>
-            <button className="feedback" onClick={() => setShowFeedback(true)}>💬 Give Feedback</button>
+            <button className="restart" onClick={restartGame}>
+              🔄 Restart Game
+            </button>
+            <button className="feedback" onClick={() => setShowFeedback(true)}>
+              💬 Give Feedback
+            </button>
           </div>
         </div>
       )}
@@ -199,24 +251,36 @@ const Game = () => {
                 placeholder="Your Email"
                 required
                 value={feedbackData.email}
-                onChange={(e) => setFeedbackData({ ...feedbackData, email: e.target.value })}
+                onChange={(e) =>
+                  setFeedbackData({ ...feedbackData, email: e.target.value })
+                }
               />
               <input
                 type="tel"
                 placeholder="Phone Number"
                 required
                 value={feedbackData.phone}
-                onChange={(e) => setFeedbackData({ ...feedbackData, phone: e.target.value })}
+                onChange={(e) =>
+                  setFeedbackData({ ...feedbackData, phone: e.target.value })
+                }
               />
               <textarea
                 placeholder="Your feedback..."
                 required
                 value={feedbackData.feedback}
-                onChange={(e) => setFeedbackData({ ...feedbackData, feedback: e.target.value })}
+                onChange={(e) =>
+                  setFeedbackData({ ...feedbackData, feedback: e.target.value })
+                }
               ></textarea>
               <div className="form-btns">
-                <button type="submit" className="submit-btn">Submit</button>
-                <button type="button" className="cancel-btn" onClick={() => setShowFeedback(false)}>
+                <button type="submit" className="submit-btn">
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowFeedback(false)}
+                >
                   Cancel
                 </button>
               </div>
