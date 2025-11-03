@@ -10,7 +10,7 @@ const Game = () => {
   const [winner, setWinner] = useState(null);
   const [isDraw, setIsDraw] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [mode, setMode] = useState(null); // "friend" | "computer-easy" | "computer-hard"
+  const [mode, setMode] = useState(null); // "friend" | "computer-easy" | "computer-medium" | "computer-hard"
   const [countdown, setCountdown] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackData, setFeedbackData] = useState({
@@ -19,21 +19,23 @@ const Game = () => {
     feedback: "",
   });
 
+  // 🧩 New: Rounds & Scores (for friend mode)
+  const [round, setRound] = useState(1);
+  const [score, setScore] = useState({ X: 0, O: 0, Draw: 0 });
+  const [matchOver, setMatchOver] = useState(false);
+
   const winSound = useRef(new Audio(process.env.PUBLIC_URL + "/sounds/win.mp3"));
   const clickSound = useRef(new Audio(process.env.PUBLIC_URL + "/sounds/click.mp3"));
   const drawSound = useRef(new Audio(process.env.PUBLIC_URL + "/sounds/draw.mp3"));
 
-  // 🕒 Ref to store countdown interval
   const countdownRef = useRef(null);
 
-  // 🎯 Reset the board
+  // 🎯 Reset the board for next round
   const restartGame = useCallback(() => {
-    // Clear any ongoing countdown timer
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
       countdownRef.current = null;
     }
-
     setBoard(Array(9).fill(null));
     setXIsNext(true);
     setWinner(null);
@@ -42,26 +44,36 @@ const Game = () => {
     setCountdown(null);
   }, []);
 
-  // 🎯 Countdown auto-reset after result
+  // 🎯 Restart entire match (for friend mode)
+  const restartMatch = () => {
+    setRound(1);
+    setScore({ X: 0, O: 0, Draw: 0 });
+    setMatchOver(false);
+    restartGame();
+  };
+
+  // 🎯 Countdown auto-reset
   const startAutoReset = useCallback(() => {
-    let counter = 5;
+    let counter = 3;
     setCountdown(counter);
-
-    // Clear any existing countdown interval
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-    }
-
+    if (countdownRef.current) clearInterval(countdownRef.current);
     countdownRef.current = setInterval(() => {
       counter -= 1;
       setCountdown(counter);
       if (counter <= 0) {
         clearInterval(countdownRef.current);
         countdownRef.current = null;
-        restartGame();
+        if (mode === "friend" && round < 10) {
+          restartGame();
+          setRound((r) => r + 1);
+        } else if (mode === "friend" && round === 10) {
+          setMatchOver(true);
+        } else {
+          restartGame();
+        }
       }
     }, 1000);
-  }, [restartGame]);
+  }, [restartGame, mode, round]);
 
   // 🎯 Handle cell click
   const handleClick = (index) => {
@@ -74,23 +86,26 @@ const Game = () => {
     clickSound.current.currentTime = 0;
     clickSound.current.play();
 
-    // If computer mode and it's computer's turn next
     if (mode.includes("computer") && xIsNext) {
       setTimeout(() => computerMove(newBoard), 600);
     }
   };
 
-  // 🎯 Computer Move (Easy + Hard)
+  // 🎯 Computer Move (Easy, Medium, Hard)
   const computerMove = (newBoard) => {
     if (winner || isDraw) return;
 
     let move;
+    const empty = newBoard.map((v, i) => (v ? null : i)).filter((v) => v !== null);
+
     if (mode === "computer-easy") {
-      // 🟢 Easy mode: random
-      const empty = newBoard.map((v, i) => (v ? null : i)).filter((v) => v !== null);
+      // Random
       move = empty[Math.floor(Math.random() * empty.length)];
+    } else if (mode === "computer-medium") {
+      // Medium: if can win, do it; if opponent can win next, block; else random
+      move = findBestMediumMove(newBoard, empty);
     } else {
-      // 🔴 Hard mode: Minimax AI
+      // Hard: minimax
       move = getBestMove(newBoard);
     }
 
@@ -101,7 +116,31 @@ const Game = () => {
     }
   };
 
-  // 🧠 Best move finder (Hard mode)
+  // 🧠 Medium mode logic
+  const findBestMediumMove = (board, empty) => {
+    // 1️⃣ Try to win
+    for (let i of empty) {
+      board[i] = "O";
+      if (calculateWinner(board) === "O") {
+        board[i] = null;
+        return i;
+      }
+      board[i] = null;
+    }
+    // 2️⃣ Block player win
+    for (let i of empty) {
+      board[i] = "X";
+      if (calculateWinner(board) === "X") {
+        board[i] = null;
+        return i;
+      }
+      board[i] = null;
+    }
+    // 3️⃣ Otherwise random
+    return empty[Math.floor(Math.random() * empty.length)];
+  };
+
+  // 🧠 Hard mode minimax
   function getBestMove(board) {
     let bestScore = -Infinity;
     let move;
@@ -119,7 +158,6 @@ const Game = () => {
     return move;
   }
 
-  // 🎯 Minimax algorithm
   function minimax(board, depth, isMaximizing) {
     const result = calculateWinner(board);
     if (result === "O") return 10 - depth;
@@ -159,16 +197,27 @@ const Game = () => {
       setShowConfetti(true);
       winSound.current.currentTime = 0;
       winSound.current.play();
+
+      // Update score in friend mode
+      if (mode === "friend") {
+        setScore((prev) => ({ ...prev, [win]: prev[win] + 1 }));
+      }
+
       startAutoReset();
     } else if (!board.includes(null)) {
       setIsDraw(true);
       drawSound.current.currentTime = 0;
       drawSound.current.play();
+
+      if (mode === "friend") {
+        setScore((prev) => ({ ...prev, Draw: prev.Draw + 1 }));
+      }
+
       startAutoReset();
     }
-  }, [board, startAutoReset]);
+  }, [board, mode, startAutoReset]);
 
-  // 🎯 Handle Feedback Submission
+  // 🎯 Feedback submission
   const handleFeedbackSubmit = (e) => {
     e.preventDefault();
     const feedbackRef = ref(db, "feedbacks");
@@ -181,9 +230,11 @@ const Game = () => {
       .catch((error) => alert("Error: " + error.message));
   };
 
-  // 🎯 UI Status
-  const status = winner
-    ? `🎉 Winner: ${winner}! 🎉`
+  // 🧾 Status text
+  const status = matchOver
+    ? "🏁 Match Over!"
+    : winner
+    ? `🎉 Winner: ${winner}!`
     : isDraw
     ? "😐 It’s a Draw!"
     : mode
@@ -198,9 +249,10 @@ const Game = () => {
         <div className="mode-select">
           <h1>Select Game Mode</h1>
           <div className="mode-buttons">
-            <button onClick={() => setMode("friend")}>👬 Play with Friend</button>
-            <button onClick={() => setMode("computer-easy")}>🤖 Play with Computer (Easy)</button>
-            <button onClick={() => setMode("computer-hard")}>🧠 Play with Computer (Hard)</button>
+            <button onClick={() => setMode("friend")}>👬 Play with Friend (10 Rounds)</button>
+            <button onClick={() => setMode("computer-easy")}>🤖 Computer (Easy)</button>
+            <button onClick={() => setMode("computer-medium")}>⚙️ Computer (Medium)</button>
+            <button onClick={() => setMode("computer-hard")}>🧠 Computer (Hard)</button>
           </div>
         </div>
       ) : (
@@ -210,12 +262,20 @@ const Game = () => {
             onClick={() => {
               restartGame();
               setMode(null);
+              restartMatch();
             }}
           >
             ⬅ Back
           </button>
 
           <h1 className="game-title">Tic Tac Toe</h1>
+
+          {mode === "friend" && (
+            <p className="round-info">
+              Round {round}/10 | X Wins: {score.X} | O Wins: {score.O} | Draws: {score.Draw}
+            </p>
+          )}
+
           <p className={`status ${winner ? "winner-text" : ""}`}>{status}</p>
 
           <div className="board">
@@ -227,7 +287,24 @@ const Game = () => {
           </div>
 
           {countdown !== null && (
-            <p className="countdown">⏳ Restarting in {countdown} seconds...</p>
+            <p className="countdown">⏳ Next Round in {countdown}...</p>
+          )}
+
+          {matchOver && (
+            <div className="match-result">
+              <h2>🏆 Final Result</h2>
+              <p>
+                X Wins: {score.X} | O Wins: {score.O} | Draws: {score.Draw}
+              </p>
+              <h3>
+                {score.X > score.O
+                  ? "🎉 Player X Wins the Match!"
+                  : score.O > score.X
+                  ? "🎉 Player O Wins the Match!"
+                  : "🤝 It's a Tie!"}
+              </h3>
+              <button onClick={restartMatch}>🔄 Restart Match</button>
+            </div>
           )}
 
           <div className="buttons">
@@ -251,26 +328,20 @@ const Game = () => {
                 placeholder="Your Email"
                 required
                 value={feedbackData.email}
-                onChange={(e) =>
-                  setFeedbackData({ ...feedbackData, email: e.target.value })
-                }
+                onChange={(e) => setFeedbackData({ ...feedbackData, email: e.target.value })}
               />
               <input
                 type="tel"
                 placeholder="Phone Number"
                 required
                 value={feedbackData.phone}
-                onChange={(e) =>
-                  setFeedbackData({ ...feedbackData, phone: e.target.value })
-                }
+                onChange={(e) => setFeedbackData({ ...feedbackData, phone: e.target.value })}
               />
               <textarea
                 placeholder="Your feedback..."
                 required
                 value={feedbackData.feedback}
-                onChange={(e) =>
-                  setFeedbackData({ ...feedbackData, feedback: e.target.value })
-                }
+                onChange={(e) => setFeedbackData({ ...feedbackData, feedback: e.target.value })}
               ></textarea>
               <div className="form-btns">
                 <button type="submit" className="submit-btn">
